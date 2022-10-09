@@ -55,7 +55,8 @@ readVars s = if head (tail s)=='^'
 parsePol = map parseMon . tail . splitInput . addSeperator . cleanInput
 
 parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
-            where (sign:absCoef) = takeWhile isPartOfNumber s
+            where (sign:auxCoef) = takeWhile isPartOfNumber s
+                  absCoef = if not (null auxCoef) then auxCoef else "1"
                   rest = dropWhile isPartOfNumber s
 
 
