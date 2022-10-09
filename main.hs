@@ -1,5 +1,4 @@
 import Data.Char
-import System.Win32 (COORD(xPos))
 
 type Coef = Int
 type Exponent = Int
