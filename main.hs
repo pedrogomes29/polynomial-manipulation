@@ -72,7 +72,7 @@ readVars s = if head (tail s)=='^'
                       (sign:absExponent) = exponent
                       otherVars = dropWhile isPartOfNumber rest
 
-parsePol = map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
+parsePol =  normPol . removeExpZero . map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
 
 parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
             where (sign:auxCoef) = takeWhile isPartOfNumber s
@@ -142,12 +142,15 @@ main = do
             putStrLn "2. Subtract polynomials"
             putStrLn "3. Multiply polynomials"
             putStrLn "4. Derive polynomials"
+            putStrLn "5. Normalize polynomials"
             str <- getLine
             let option = read str
             putStrLn "Insert a polynomial:"
             pol1str <- getLine
             let pol1 = parsePol pol1str 
-            if(option==4) then do
+            if(option==5) then do
+                  putStrLn (polToStr pol1) 
+            else if(option==4) then do
                   putStrLn "Insert the variable to derive by"
                   var <- getChar
                   putStrLn (polToStr (derivePol pol1 var))
