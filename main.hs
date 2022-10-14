@@ -1,4 +1,3 @@
-{-# LANGUAGE BlockArguments #-}
 import Data.Char
 import Data.List
 import System.Exit (exitSuccess)
