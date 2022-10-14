@@ -1,5 +1,8 @@
+{-# LANGUAGE BlockArguments #-}
 import Data.Char
 import Data.List
+import System.Exit (exitSuccess)
+
 
 
 type Coef = Int
@@ -143,29 +146,34 @@ main = do
             putStrLn "3. Multiply polynomials"
             putStrLn "4. Derive polynomials"
             putStrLn "5. Normalize polynomials"
+            putStrLn "6. Exit"
             str <- getLine
             let option = read str
-            putStrLn "Insert a polynomial:"
-            pol1str <- getLine
-            let pol1 = parsePol pol1str 
-            if(option==5) then do
-                  putStrLn (polToStr pol1) 
-            else if(option==4) then do
-                  putStrLn "Insert the variable to derive by"
-                  var <- getChar
-                  putStrLn (polToStr (derivePol pol1 var))
-            else do
-                  putStrLn "Insert the second polynomial:"
-                  pol2str <- getLine
-                  let pol2 = parsePol pol2str 
-                  if (option==1) then do
-                        putStrLn "The sum is:"
-                        putStrLn (polToStr (sumPol pol1 pol2))
-                  else if (option==2) then do
-                        putStrLn "The difference is:"
-                        putStrLn (polToStr (subPol pol1 pol2))
-                  else if (option==3) then do
-                        putStrLn "The product is:"
-                        putStrLn (polToStr (mulPol pol1 pol2))
+            if option==6 then do
+                  exitSuccess
+            else do 
+                  putStrLn "Insert a polynomial:"
+                  pol1str <- getLine
+                  let pol1 = parsePol pol1str
+                  if option==5 then do
+                        putStrLn (polToStr pol1) 
+                  else if option==4 then do
+                        putStrLn "Insert the variable to derive by"
+                        var <- getChar
+                        putStrLn (polToStr (derivePol pol1 var))
                   else do
-                        putStrLn "Invalid option"
+                        putStrLn "Insert the second polynomial:"
+                        pol2str <- getLine
+                        let pol2 = parsePol pol2str 
+                        if option==1 then do
+                              putStrLn "The sum is:"
+                              putStrLn (polToStr (sumPol pol1 pol2))
+                        else if option==2 then do
+                              putStrLn "The difference is:"
+                              putStrLn (polToStr (subPol pol1 pol2))
+                        else if option==3 then do
+                              putStrLn "The product is:"
+                              putStrLn (polToStr (mulPol pol1 pol2))
+                        else do
+                              putStrLn "Invalid option"
+            main
