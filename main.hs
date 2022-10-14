@@ -16,6 +16,8 @@ cleanInput:: String -> String
 splitInput:: String -> [String]
 addSeperator::String -> String
 
+orderMon:: Monomial-> Monomial
+
 readVars:: String->[(Var,Exponent)]
 
 parseMon:: String -> Monomial
@@ -70,7 +72,7 @@ readVars s = if head (tail s)=='^'
                       (sign:absExponent) = exponent
                       otherVars = dropWhile isPartOfNumber rest
 
-parsePol = map parseMon . tail . splitInput . addSeperator . cleanInput
+parsePol = map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
 
 parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
             where (sign:auxCoef) = takeWhile isPartOfNumber s
@@ -88,7 +90,7 @@ polToStr [] = ""
 polToStr [x] = monToStr x
 polToStr (x:xs) = monToStr x ++  polToStr xs
                   
-
+orderMon (coef,vars) = (coef,sortBy (\(var1,exp1) (var2,exp2) -> compare var1 var2) vars)
 
 
 countEqualMon (coef1,vars1) [] = 0
@@ -107,7 +109,7 @@ sumPol p1 p2 = removeCoefZero (normPol (p1++p2))
 
 subPol p1 p2 = removeCoefZero (normPol (p1++map (\(coef,vars) -> (-coef,vars)) p2))
 
-mulPol p1 p2 = removeExpZero (normPol [mulMon m1 m2 | m1<-p1 ,m2<-p2])
+mulPol p1 p2 = removeExpZero (normPol [orderMon (mulMon m1 m2) | m1<-p1 ,m2<-p2])
 
 sumExponentEqualVars var1 xs = sum [exponent2|(var2,exponent2)<-xs,var1==var2]
 
@@ -121,7 +123,7 @@ mulMon (coef1,vars1) (coef2,vars2) = (coef1*coef2,normVars (vars1++vars2))
 
 derivePolAux [] _ = []
 derivePolAux ((coef,vars):xs) var = if exp==0 then derivePolAux xs var
-                                 else (coef*exp,varsAfterDer):derivePolAux xs var 
+                                 else orderMon((coef*exp,varsAfterDer)):derivePolAux xs var 
                                  where    exp = (sumExponentEqualVars var vars)  -- actually just gets the exponent of the var, pol is normalized
                                           varsAfterDer = (var,exp-1):(filter (\(v,e) -> v/=var) vars)
 
@@ -147,8 +149,7 @@ main = do
             let pol1 = parsePol pol1str 
             if(option==4) then do
                   putStrLn "Insert the variable to derive by"
-                  varStr <- getLine
-                  let var = read varStr
+                  var <- getChar
                   putStrLn (polToStr (derivePol pol1 var))
             else do
                   putStrLn "Insert the second polynomial:"
