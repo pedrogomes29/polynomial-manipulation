@@ -16,6 +16,7 @@ cleanInput:: String -> String
 splitInput:: String -> [String]
 addSeperator::String -> String
 
+
 orderMon:: Monomial-> Monomial
 
 readVars:: String->[(Var,Exponent)]
@@ -26,6 +27,8 @@ parsePol:: String -> Polynomial
 polToStr:: Polynomial -> String
 monToStr:: Monomial -> String
 printVars:: [(Var,Exponent)]->String
+cleanOutput:: String -> String
+printResult:: Polynomial -> String
 
 sumPol:: Polynomial -> Polynomial -> Polynomial
 subPol:: Polynomial -> Polynomial -> Polynomial
@@ -62,6 +65,7 @@ splitInput s = mon1: splitInput (if mon2=="" then "" else tail mon2)
                where (mon1,mon2) = break (seperator==) s
 
 
+
 readVars "" = []
 readVars [x] = [(x,1)] --if last variable has exponent 1 (ommited)
 readVars s = if head (tail s)=='^' 
@@ -80,15 +84,24 @@ parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
                   rest = dropWhile isPartOfNumber s
 
 
-monToStr (coef,rest) = (if coef >0 then "+" else "") ++show coef ++ printVars rest
+monToStr (coef,rest)    | coef==(-1) = "- " ++ printVars rest
+                        | coef==1 = "+ " ++ printVars rest
+                        | coef<0 = "- " ++ show (abs coef) ++ printVars rest
+                        | otherwise =  "+ " ++ show coef ++ printVars rest
 
 printVars [] = ""
 printVars ((var,exponent):xs)   | exponent == 1 =  var: printVars xs
                                 | otherwise = [var] ++ "^" ++ show exponent ++ printVars xs
 
+printResult = cleanOutput . polToStr  
+
+cleanOutput ('+':' ':mm) = mm
+cleanOutput ('-':' ':mm) = '-':mm
+cleanOutput mm = mm
+
 polToStr [] = ""
 polToStr [x] = monToStr x
-polToStr (x:xs) = monToStr x ++  polToStr xs
+polToStr (x:xs) = monToStr x ++ " " ++  polToStr xs
                   
 orderMon (coef,vars) = (coef,sortBy (\(var1,exp1) (var2,exp2) -> compare var1 var2) vars)
 
@@ -149,23 +162,23 @@ main = do
             pol1str <- getLine
             let pol1 = parsePol pol1str 
             if(option==5) then do
-                  putStrLn (polToStr pol1) 
+                  putStrLn (printResult pol1) 
             else if(option==4) then do
                   putStrLn "Insert the variable to derive by"
                   var <- getChar
-                  putStrLn (polToStr (derivePol pol1 var))
+                  putStrLn (printResult (derivePol pol1 var))
             else do
                   putStrLn "Insert the second polynomial:"
                   pol2str <- getLine
                   let pol2 = parsePol pol2str 
                   if (option==1) then do
                         putStrLn "The sum is:"
-                        putStrLn (polToStr (sumPol pol1 pol2))
+                        putStrLn (printResult (sumPol pol1 pol2))
                   else if (option==2) then do
                         putStrLn "The difference is:"
-                        putStrLn (polToStr (subPol pol1 pol2))
+                        putStrLn (printResult (subPol pol1 pol2))
                   else if (option==3) then do
                         putStrLn "The product is:"
-                        putStrLn (polToStr (mulPol pol1 pol2))
+                        putStrLn (printResult (mulPol pol1 pol2))
                   else do
                         putStrLn "Invalid option"
