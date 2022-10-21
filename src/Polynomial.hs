@@ -1,8 +1,7 @@
+module Polynomial where
+
 import Data.Char
 import Data.List
-import System.Exit (exitSuccess)
-
-
 
 type Coef = Int
 type Exponent = Int
@@ -49,6 +48,7 @@ removeCoefZero:: Polynomial -> Polynomial
 sumExponentEqualVars:: Var ->  [(Var,Exponent)] -> Exponent
 removeEqualVars:: Var -> [(Var,Exponent)] -> [(Var,Exponent)]
 
+
 seperator = '?'
 
 isPartOfNumber c = isDigit c || c=='+' || c=='-'
@@ -71,7 +71,7 @@ splitInput s = mon1: splitInput (if mon2=="" then "" else tail mon2)
 readVars "" = []
 readVars [x] = [(x,1)] --if last variable has exponent 1 (ommited)
 readVars s = if head (tail s)=='^' 
-             then (head var, if sign=='-' then -read absExponent else read exponent): readVars otherVars 
+             then (head var, if sign=='-'then -read absExponent else read exponent): readVars otherVars 
              else (head s,1) :readVars (tail s) -- if the next character isn't a carat (^), then the head is a variable with exponent 1 ommited
                 where (var,carat:rest) = break('^'==) s  -- carat is the symbol '^'
                       exponent = takeWhile isPartOfNumber rest
@@ -86,7 +86,9 @@ parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
                   rest = dropWhile isPartOfNumber s
 
 
-monToStr (coef,rest)    | coef==(-1) = "- " ++ printVars rest
+monToStr (coef,rest)    | coef>0 && rest==[] = "+ " ++ show coef
+                        | rest==[] = "- " ++ show (abs coef) 
+                        | coef==(-1) = "- " ++ printVars rest
                         | coef==1 = "+ " ++ printVars rest
                         | coef<0 = "- " ++ show (abs coef) ++ printVars rest
                         | otherwise =  "+ " ++ show coef ++ printVars rest
@@ -149,44 +151,3 @@ derivePol xs var = removeExpZero (derivePolAux xs var)
 removeExpZero p = [(coef, [(var,exp)|(var,exp)<-vars,exp/=0]) | (coef,vars) <- p]
 removeCoefZero p = [(coef,vars)|(coef,vars)<-p,coef/=0]
 
-
-main :: IO ()
-main = do
-            putStrLn "Choose an option: "
-            putStrLn "1. Add polynomials"
-            putStrLn "2. Subtract polynomials"
-            putStrLn "3. Multiply polynomials"
-            putStrLn "4. Derive polynomials"
-            putStrLn "5. Normalize polynomials"
-            putStrLn "6. Exit"
-            str <- getLine
-            let option = read str
-            if option==6 then do
-                  exitSuccess
-            else if option >6 || option <= 0 then do 
-                  putStrLn "Invalid option"
-            else do 
-                  putStrLn "Insert a polynomial:"
-                  pol1str <- getLine
-                  let pol1 = parsePol pol1str
-                  if option==5 then do
-                        putStrLn (printResult pol1) 
-                  else if option==4 then do
-                        putStrLn "Insert the variable to derive by"
-                        var <- getChar
-                        putStrLn (printResult (derivePol pol1 var))
-                  else do
-                        putStrLn "Insert the second polynomial:"
-                        pol2str <- getLine
-                        let pol2 = parsePol pol2str 
-                        if option==1 then do
-                              putStrLn "The sum is:"
-                              putStrLn (printResult (sumPol pol1 pol2))
-                        else if option==2 then do
-                              putStrLn "The difference is:"
-                              putStrLn (printResult (subPol pol1 pol2))
-                        else do
-                              putStrLn "The product is:"
-                              putStrLn (printResult (mulPol pol1 pol2))
-                        
-            main

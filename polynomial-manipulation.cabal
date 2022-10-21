@@ -1,7 +1,7 @@
 cabal-version:      2.4
 name:               polynomial-manipulation
 version:            0.1.0.0
-
+Build-Type:
 -- A short (one-line) description of the package.
 -- synopsis:
 
@@ -23,16 +23,31 @@ extra-source-files:
     CHANGELOG.md
     README.md
 
-executable polynomial-manipulation
+
+library polynomial
+    default-language: Haskell2010
+    hs-source-dirs: src
+    build-depends: base ^>=4.14.3.0,
+    exposed-modules: Polynomial
+
+executable app
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    -- other-modules:-manipulation
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
         base ^>=4.14.3.0,
-        QuickCheck ^>= 2.14.2
+        polynomial
     hs-source-dirs:   app
+    default-language: Haskell2010
+
+
+test-suite test
+    type:                     exitcode-stdio-1.0
+    main-is:                  PolynomialTests.hs
+    hs-source-dirs:           test
+    build-depends:            base^>=4.14.3.0, QuickCheck ^>= 2.14.2,polynomial
     default-language: Haskell2010
