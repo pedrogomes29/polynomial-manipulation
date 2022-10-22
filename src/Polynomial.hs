@@ -9,13 +9,13 @@ type Var = Char
 type Monomial = (Coef,[(Var,Exponent)])
 type Polynomial = [Monomial]
 
-seperator::Char
+separator::Char
 
 isPartOfNumber::Char->Bool
 
 cleanInput:: String -> String
 splitInput:: String -> [String]
-addSeperator::String -> String
+addSeparator::String -> String
 
 
 getBiggestExp:: [(Var,Exponent)] -> ([Var],Exponent)
@@ -55,19 +55,19 @@ sumExponentEqualVars:: Var ->  [(Var,Exponent)] -> Exponent
 removeEqualVars:: Var -> [(Var,Exponent)] -> [(Var,Exponent)]
 
 
-seperator = '?'
+separator = '?'
 
 
 -- returns true if c is part of the representation of a digit (+,- or a number)
 isPartOfNumber c = isDigit c || c=='+' || c=='-'
 
 
--- adds a seperator ('?') before every '+' or '-', but skips the '-' signs after '^'
--- in essense it adds a seperator between each monomial 
-addSeperator "" = []
-addSeperator (x:xs) |x=='^' = x:(head xs:addSeperator (tail xs))
-                    |x=='-' || x=='+' = seperator:(x:addSeperator xs)
-                    |otherwise = x:addSeperator xs
+-- adds a separator ('?') before every '+' or '-', but skips the '-' signs after '^'
+-- in essense it adds a separator between each monomial 
+addSeparator "" = []
+addSeparator (x:xs) |x=='^' = x:(head xs:addSeparator (tail xs))
+                    |x=='-' || x=='+' = separator:(x:addSeparator xs)
+                    |otherwise = x:addSeparator xs
 
 -- filters characters that aren't part of the representation of a monomial
 -- and adds a plus sign in the begging if it is ommited (the signs are used to parse the polynomial)
@@ -78,7 +78,7 @@ cleanInput xs     | head cleaned=='-' || head cleaned=='+' = cleaned
 -- splits the input string into a list of strings represeting each monomial
 splitInput "" = []
 splitInput s = mon1: splitInput (if mon2=="" then "" else tail mon2)
-               where (mon1,mon2) = break (seperator==) s
+               where (mon1,mon2) = break (separator==) s
 
 
 -- this function recursively reads the variable (and corresponding exponents) part of the input string
@@ -90,17 +90,17 @@ splitInput s = mon1: splitInput (if mon2=="" then "" else tail mon2)
 readVars "" = []
 readVars [x] = [(x,1)] --if last variable has exponent 1 (ommited)
 readVars s = if head (tail s)=='^' 
-             then (head var, if sign=='-'then -read absExponent else read exponent): readVars otherVars 
+             then (head var,if sign=='-' then -read absExponent else if sign=='+' then read absExponent else read exponent): readVars otherVars 
              else (head s,1) :readVars (tail s) -- if the next character isn't a carat (^), then the head is a variable with exponent 1 ommited
                 where (var,carat:rest) = break('^'==) s  -- carat is the symbol '^'
                       exponent = takeWhile isPartOfNumber rest
                       (sign:absExponent) = exponent
                       otherVars = dropWhile isPartOfNumber rest
 
---It cleans unnecessary characters, adds the seperator, uses it to split the string into an array of strings representing monomials (which has
+--It cleans unnecessary characters, adds the separator, uses it to split the string into an array of strings representing monomials (which has
 --an empty string in the beggining which is removed with tail), it parses each string, orders it's variables in alphabetical order and then
 --normalizes the polynomial
-parsePol =  normPol . map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
+parsePol =  normPol . map (orderMon . parseMon) . tail . splitInput . addSeparator . cleanInput
 
 --It uses the first character to know the sign of the coefficient, uses takewhile to get the coefficient's value
 --and then uses readVars to represent the vars in the internal representation
@@ -124,7 +124,7 @@ printVars ((var,exponent):xs)   | exponent == 1 =  var: printVars xs
                                 | otherwise = [var] ++ "^" ++ show exponent ++ printVars xs
 
 
---calls monToStr to print monomials and adds seperators between them
+--calls monToStr to print monomials and adds separators between them
 polToStr [] = ""
 polToStr [x] = monToStr x
 polToStr (x:xs) = monToStr x ++ " " ++  polToStr xs

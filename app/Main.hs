@@ -24,8 +24,8 @@ main =  do
                         putStrLn (printResult pol1) 
                   else if option==4 then do
                         putStrLn "Insert the variable to derive by"
-                        var <- getChar
-                        putStrLn (printResult (derivePol pol1 var))
+                        var <- getLine
+                        putStrLn (printResult (derivePol pol1 (head var)))
                   else do
                         putStrLn "Insert the second polynomial:"
                         pol2str <- getLine
