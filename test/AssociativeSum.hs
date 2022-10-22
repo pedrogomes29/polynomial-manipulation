@@ -13,7 +13,7 @@ prop_associative_sum x y z = sumPol x (sumPol y z) == sumPol (sumPol x y) z
 main :: IO ()
 main = do
         let tests = [
-                      quickCheckResult prop_associative_sum
+                      quickCheckResult (withMaxSuccess 10000 prop_associative_sum)
                     ]
         success <- fmap (all isSuccess) . sequence $ tests
         when (not success) $ exitFailure
