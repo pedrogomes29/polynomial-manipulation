@@ -1,5 +1,4 @@
-# PFL_TP1
-## Polynomial manipulation
+# Polynomial manipulation
 
 ## Requirements
 - [ghc 9.0.1](https://www.haskell.org/ghc/download_ghc_9_0_1.html) 
