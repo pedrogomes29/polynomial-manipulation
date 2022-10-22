@@ -134,6 +134,7 @@ printResult = cleanOutput . polToStr . orderPol
 
 
 --removes the '+' sign in the begging of the string if needed
+cleanOutput [] = "0"
 cleanOutput ('+':' ':mm) = mm
 cleanOutput ('-':' ':mm) = '-':mm
 cleanOutput mm = mm
