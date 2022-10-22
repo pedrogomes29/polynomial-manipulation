@@ -18,7 +18,12 @@ splitInput:: String -> [String]
 addSeperator::String -> String
 
 
-orderMon:: Monomial-> Monomial
+getBiggestExp:: [(Var,Exponent)] -> ([Var],Exponent) --gets biggest exponent of the mon and variables that have that exp
+orderMon:: Monomial -> Monomial
+compareVars:: [Var] -> [Var] -> Ordering
+compareMon:: Monomial -> Monomial -> Ordering
+removeExp:: [(Var,Exponent)]->Exponent->[(Var,Exponent)]
+orderPol:: Polynomial -> Polynomial
 
 readVars:: String->[(Var,Exponent)]
 
@@ -34,6 +39,7 @@ printResult:: Polynomial -> String
 sumPol:: Polynomial -> Polynomial -> Polynomial
 subPol:: Polynomial -> Polynomial -> Polynomial
 mulPol:: Polynomial -> Polynomial -> Polynomial
+joinMon:: Polynomial -> Polynomial
 normPol:: Polynomial -> Polynomial
 derivePolAux:: Polynomial -> Var -> Polynomial
 derivePol:: Polynomial -> Var -> Polynomial
@@ -78,7 +84,7 @@ readVars s = if head (tail s)=='^'
                       (sign:absExponent) = exponent
                       otherVars = dropWhile isPartOfNumber rest
 
-parsePol =  normPol . removeExpZero . map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
+parsePol =  normPol . map (orderMon . parseMon) . tail . splitInput . addSeperator . cleanInput
 
 parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
             where (sign:auxCoef) = takeWhile isPartOfNumber s
@@ -86,7 +92,7 @@ parseMon s = (if sign=='-' then -read absCoef else read absCoef,readVars rest)
                   rest = dropWhile isPartOfNumber s
 
 
-monToStr (coef,rest)    | coef>0 && rest==[] = "+ " ++ show coef
+monToStr (coef,rest)    | coef>=0 && rest==[] = "+ " ++ show coef
                         | rest==[] = "- " ++ show (abs coef) 
                         | coef==(-1) = "- " ++ printVars rest
                         | coef==1 = "+ " ++ printVars rest
@@ -97,7 +103,7 @@ printVars [] = ""
 printVars ((var,exponent):xs)   | exponent == 1 =  var: printVars xs
                                 | otherwise = [var] ++ "^" ++ show exponent ++ printVars xs
 
-printResult = cleanOutput . polToStr  
+printResult = cleanOutput . polToStr . orderPol
 
 cleanOutput ('+':' ':mm) = mm
 cleanOutput ('-':' ':mm) = '-':mm
@@ -106,8 +112,38 @@ cleanOutput mm = mm
 polToStr [] = ""
 polToStr [x] = monToStr x
 polToStr (x:xs) = monToStr x ++ " " ++  polToStr xs
-                  
+
+
+
+removeExp [] exp = []
+removeExp ((var,exp1):xs) exp2| exp1==exp2 = removeExp xs exp2
+                              | otherwise = (var,exp1):(removeExp xs exp2)
+
+getBiggestExp ([]) = ([],minBound::Int)
+getBiggestExp ((var,exp):xs)  | maxExpRest<exp = ([var],exp)
+                              | maxExpRest>exp = (varsRest,maxExpRest)
+                              | otherwise = (insert var varsRest,exp)
+                              where (varsRest,maxExpRest) = getBiggestExp xs
+
+compareVars [] [] = EQ
+compareVars x [] = LT
+compareVars [] y = GT
+compareVars (x:xs) (y:ys)     | x==y = compareVars xs ys
+                              | otherwise = compare x y
+
+compareMon (0,[]) (0,[]) = EQ
+compareMon (0,xs) (0,[]) = LT
+compareMon (0,[]) (0,ys) = GT
+compareMon (coef1,vars1) (coef2,vars2)    | maxExp1 /= maxExp2 = compare maxExp2 maxExp1
+                                          | compareVarsResult/=EQ = compareVarsResult
+                                          | otherwise = compareMon (0,removeExp vars1 maxExp1) (0,removeExp vars2 maxExp2)
+                                          where (maxVars1,maxExp1) = getBiggestExp vars1
+                                                (maxVars2,maxExp2) = getBiggestExp vars2
+                                                compareVarsResult = compareVars maxVars1 maxVars2
+
 orderMon (coef,vars) = (coef,sortBy (\(var1,exp1) (var2,exp2) -> compare var1 var2) vars)
+orderPol = sortBy compareMon
+
 
 
 countEqualMon (coef1,vars1) [] = 0
@@ -118,15 +154,20 @@ removeEqualMon mon [] = []
 removeEqualMon (coef1,vars1) ((coef2,vars2):xs) | vars1==vars2 = removeEqualMon (coef1,vars1) xs
                                                 | otherwise = (coef2,vars2):removeEqualMon (coef1,vars1) xs
 
-normPol [] = []
-normPol ((coef,vars):xs) | coef==0 = normPol xs
-                         | otherwise = (coef+countEqualMon (coef,vars) xs,vars):normPol (removeEqualMon (coef,vars) xs) 
 
-sumPol p1 p2 = removeCoefZero (normPol (p1++p2))
+normPol = orderPol . removeCoefZero . joinMon . removeExpZero
 
-subPol p1 p2 = removeCoefZero (normPol (p1++map (\(coef,vars) -> (-coef,vars)) p2))
+joinMon [] = []
+joinMon ((coef,vars):xs) =(coef+countEqualMon (coef,vars) xs,vars):joinMon (removeEqualMon (coef,vars) xs) 
 
-mulPol p1 p2 = removeExpZero (normPol [orderMon (mulMon m1 m2) | m1<-p1 ,m2<-p2])
+sumPol p1 p2 = normPol (p1++p2)
+
+subPol p1 p2 = normPol (p1++map (\(coef,vars) -> (-coef,vars)) p2)
+
+mulPol [] [] = []
+mulPol p1 [] = []
+mulPol [] p2 = []
+mulPol p1 p2 = normPol [orderMon (mulMon m1 m2) | m1<-p1 ,m2<-p2]
 
 sumExponentEqualVars var1 xs = sum [exponent2|(var2,exponent2)<-xs,var1==var2]
 
@@ -140,8 +181,8 @@ mulMon (coef1,vars1) (coef2,vars2) = (coef1*coef2,normVars (vars1++vars2))
 
 derivePolAux [] _ = []
 derivePolAux ((coef,vars):xs) var = if exp==0 then derivePolAux xs var
-                                 else orderMon((coef*exp,varsAfterDer)):derivePolAux xs var 
-                                 where    exp = (sumExponentEqualVars var vars)  -- actually just gets the exponent of the var, pol is normalized
+                                    else orderMon((coef*exp,varsAfterDer)):derivePolAux xs var 
+                                    where exp = (sumExponentEqualVars var vars)  -- actually just gets the exponent of the var, pol is normalized
                                           varsAfterDer = (var,exp-1):(filter (\(v,e) -> v/=var) vars)
 
 
