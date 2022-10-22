@@ -14,7 +14,6 @@ extra-source-files:
 
 library polynomial-internal
     default-language: Haskell2010
-    hs-source-dirs: src
     build-depends: base
     exposed-modules: Polynomial
 
@@ -23,14 +22,12 @@ executable app
     build-depends:
         base,
         polynomial-internal
-    hs-source-dirs:   app
     default-language: Haskell2010
 
 
 test-suite commutativeSum
     type:                     exitcode-stdio-1.0
     main-is:                  CommutativeSum.hs
-    hs-source-dirs:           test
     build-depends:            
         base,
         polynomial-internal,
@@ -40,7 +37,6 @@ test-suite commutativeSum
 test-suite associativeSum
     type:                     exitcode-stdio-1.0
     main-is:                  AssociativeSum.hs
-    hs-source-dirs:           test
     build-depends:            
         base,
         polynomial-internal,
@@ -50,7 +46,6 @@ test-suite associativeSum
 test-suite commutativeMul
     type:                     exitcode-stdio-1.0
     main-is:                  CommutativeMul.hs
-    hs-source-dirs:           test
     build-depends:            
         base,
         polynomial-internal,
@@ -60,7 +55,6 @@ test-suite commutativeMul
 test-suite associativeMul
     type:                     exitcode-stdio-1.0
     main-is:                  AssociativeMul.hs
-    hs-source-dirs:           test
     build-depends:            
         base,
         polynomial-internal,
@@ -70,7 +64,6 @@ test-suite associativeMul
 test-suite distributiveMulSum
     type:                     exitcode-stdio-1.0
     main-is:                  DistributiveMulSum.hs
-    hs-source-dirs:           test
     build-depends:            
         base,
         polynomial-internal,
